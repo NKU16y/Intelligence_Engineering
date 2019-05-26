@@ -52,15 +52,15 @@ class map_update:
         self.wx= 0.0
         self.xm= 0.0
         self.ym= 0.0
+        self.isamcl=False
         self.amcl_sub=rospy.Subscriber("/amcl_pose",PoseWithCovarianceStamped,self.amclCallback)
         #判断amcl是否完成定位
-        self.isamcl=False
         rospy.Rate(1)
         rospy.spin()
 
     def World2map(self,xw,yw):
-        ym=float(xw-self.origin_x)/float(self.resolution)
-        xm=float(yw-self.origin_y)/float(self.resolution)
+        xm=float(xw-self.origin_x)/float(self.resolution)
+        ym=float(yw-self.origin_y)/float(self.resolution)
         return xm,ym
     
     #更新地图函数:
@@ -71,15 +71,17 @@ class map_update:
             print("update map")
             self.wx=self.x+self.dis*math.cos(self.theta)
             self.wy=self.y+self.dis*math.sin(self.theta)
-            print(self.wx)
-            print(self.wy)
+         #   print(self.wx)
+         #   print(self.wy)
             self.xm,self.ym=self.World2map(self.wx,self.wy)
             self.xm=int(self.xm)
             self.ym=int(self.ym)
+         #   print(self.xm)
+         #   print(self.ym)
             U_map=self.map_raw.reshape(self.height,self.width)
-            for i in range(self.xm-5,self.xm+5):
-                for j in range(self.ym-5,self.ym+5):
-                    U_map[i][j]=0
+            for i in range(self.ym-5,self.ym+5):
+                for j in range(self.xm-5,self.xm+5):
+                    U_map[i][j]=100
             Up_map=np.array(U_map,dtype=np.int8)
             self.map.data=list(Up_map.flatten())
             self.map_update_pub.publish(self.map)
@@ -112,7 +114,7 @@ class map_update:
                 self.isob=True
             else:
                 self.isob =False
-        print("Laser is ready")
+        #print("Laser is ready")
         self.update_map()
 
     def amclCallback(self,msg):
